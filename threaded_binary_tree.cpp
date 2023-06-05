@@ -1,45 +1,112 @@
 /*
  * C++ Program to Implement Threaded Binary Tree
+ * 
+ * Rimjhim Sudhesh and Michael Schwartz
+ * 
+ * 🐇🦒
  */
-#include <cstdlib>
 #include <iostream>
-#define MAX_VALUE 65536
+#include "threaded_binary_tree.h"
+#define MAX_VALUE 65535;
 using namespace std;
 
-/* Class Node */
+  /*
+    Overloaded ostream operator to print out a TBST
 
-class Node {
-public:
-  int key;
-  Node *left, *right;
-  bool leftThread, rightThread;
-};
+    @param out as the ostream that the tree will be returned to
+    @param tree as the tree being printed
+    @return ostream to be printed
+  */
+  ostream& operator<<(ostream& out, const ThreadedBinarySearchTree& tree) {
+    Node* temp = tree.root->left;
+    while(temp != tree.root) {
+      out << temp->key << " ";
+      if(temp->rightThread) {
+        temp = temp->right;
+      } else {
+        temp = temp->right;
+        while(!temp->leftThread) {
+          temp = temp->left;
+        }
+      }
+    }
+    return out;
+  }
 
-/* Class ThreadedBinarySearchTree */
 
-class ThreadedBinarySearchTree {
-private:
-  Node *root;
-
-public:
-  /* Constructor */
-  ThreadedBinarySearchTree() {
+  /* 
+    No Parameter constructor for ThreadeBinarySearchTree
+  */
+  ThreadedBinarySearchTree::ThreadedBinarySearchTree() {
     root = new Node();
     root->right = root->left = root;
     root->leftThread = true;
     root->key = MAX_VALUE;
   }
 
-  /* Function to clear tree */
-  void makeEmpty() {
+  /*
+    One parameter constructor for ThreadedBinarySearchTree
+
+    @param n as the number of nodes being added to the tree
+  */
+  ThreadedBinarySearchTree::ThreadedBinarySearchTree(int n) {
+    root = new Node();
+    root->right = root->left = root;
+    root->leftThread = true;
+    root->key = MAX_VALUE;
+    for(int i = 1; i <= n; i++) {
+      insert(i);
+    }
+  }
+  
+  /*
+    Copy constructor for TBST
+
+    @param other as the TBST being copied
+  */
+  ThreadedBinarySearchTree::ThreadedBinarySearchTree(const ThreadedBinarySearchTree &other){
+    root = new Node();
+    root->right = root->left = root;
+    root->leftThread = true;
+    root->key = MAX_VALUE;
+    Node *temp = other.root->left;
+    while(temp != other.root) {
+      insert(temp->key);
+      if(temp->rightThread) {
+        temp = temp->right;
+      } else {
+        temp = temp->right;
+        while(!temp->leftThread) {
+          temp = temp->left;
+        }
+      }
+    }
+  }
+
+  /*
+    Destructor for the ThreadedBinarySearchTree class
+  */
+  ThreadedBinarySearchTree::~ThreadedBinarySearchTree() {
+    makeEmpty();
+    delete root;
+  }
+
+  /* 
+    Makes the entire tree empty
+  */
+  void ThreadedBinarySearchTree::makeEmpty() {
     root = new Node();
     root->right = root->left = root;
     root->leftThread = true;
     root->key = MAX_VALUE;
   }
 
-  /* Function to insert a key */
-  void insert(int key) {
+  /* 
+    Inserts a new node with value key in the tree
+
+    @param key as the value being inserted
+   */
+  void ThreadedBinarySearchTree::insert(int key) {
     Node *p = root;
     for (;;) {
       if (p->key < key) {
@@ -73,25 +140,55 @@ public:
   }
 
   /* Function to search for an element */
-  bool search(int key) {
+  Node* ThreadedBinarySearchTree::search(int key) {
     Node *tmp = root->left;
     for (;;) {
       if (tmp->key < key) {
         if (tmp->rightThread)
-          return false;
+          return nullptr;
         tmp = tmp->right;
       } else if (tmp->key > key) {
         if (tmp->leftThread)
-          return false;
+          return nullptr;
         tmp = tmp->left;
       } else {
-        return true;
+        return tmp;
       }
     }
   }
 
-  /* Fuction to delete an element */
-  void Delete(int key) {
+  /*
+    Checks the TBST and determines if the tree contains a node with value key
+
+    @param key as the value being looked for
+    @return true if TBST contains key, false otherwise
+  */
+  bool ThreadedBinarySearchTree::contains(int key) {
+    return (search(key) != nullptr);
+  }
+
+  /*
+    Returns the highest node value in the TBST
+
+    @return int of the highest node value
+  */
+  int ThreadedBinarySearchTree::getHighest() {
+    Node* cur = root;
+    if(root == nullptr){
+      return -1;
+    }
+    while(cur->rightThread) {
+      cur = cur->right;
+    }
+    return cur->key;
+  }
+
+  /*
+    Removes a node with value key from the tree
+
+    @param key as the node being deleted
+  */
+  void ThreadedBinarySearchTree::remove(int key) {
     Node *dest = root->left, *p = root;
     for (;;) {
       if (dest->key < key) {
@@ -164,22 +261,3 @@ public:
       }
     }
   }
-
-  /* Function to print tree */
-  void printTree() {
-    Node *tmp = root, *p;
-    for (;;) {
-      p = tmp;
-      tmp = tmp->right;
-      if (!p->rightThread) {
-        while (!tmp->leftThread) {
-          tmp = tmp->left;
-        }
-      }
-      if (tmp == root)
-        break;
-      cout << tmp->key << "   ";
-    }
-    cout << endl;
-  }
-};
